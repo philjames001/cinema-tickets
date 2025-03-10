@@ -12,6 +12,7 @@ import uk.gov.dwp.uc.pairtest.domain.TicketTypeRequest;
 import uk.gov.dwp.uc.pairtest.exception.*;
 
 public class TicketServiceImpl implements TicketService {
+	static public int MAX_TICKETS = 25;
 	
     public TicketPaymentService payment;
     public SeatReservationService seatReservation;
@@ -37,8 +38,8 @@ public class TicketServiceImpl implements TicketService {
             for(int i=1; i<= request.getNoOfTickets(); i++) {
             	tickets.add(ticket);
             	
-                // Business Rule: Only a maximum of 20 tickets that can be purchased at a time
-                if(tickets.size() > 20) {
+                // Business Rule: Only a maximum num of tickets can be purchased at a time
+                if(tickets.size() > MAX_TICKETS) {
                     throw new InvalidNumTicketsException();
                 }
             }
