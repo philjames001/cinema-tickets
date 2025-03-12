@@ -1,10 +1,11 @@
 package uk.gov.dwp.uc.pairtest.domain;
 
-public enum TicketPrice { 
+// Likely that more than one price will rise at same time, so group them here
+public enum TicketPrice {
 	// Prices are in £'s
-    ADULT(20),
-    CHILD(10),
-    INFANT(0);
+    ADULT_PRICE(20),
+    CHILD_PRICE(10),
+    INFANT_PRICE(0);
 
     private final int price;
 

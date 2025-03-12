@@ -9,10 +9,8 @@ public class TicketServiceFactory {
             TicketPaymentService ticketPaymentService,
             SeatReservationService seatReservationService) {
 
-        TicketServiceImpl impl = new TicketServiceImpl();
-
-        impl.payment = ticketPaymentService;
-        impl.seatReservation = seatReservationService;
+        TicketServiceImpl impl = new TicketServiceImpl(
+        		ticketPaymentService,seatReservationService);
 
         return impl;
     }

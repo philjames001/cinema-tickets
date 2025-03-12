@@ -1,28 +1,33 @@
 package uk.gov.dwp.uc.pairtest.domain;
 
-	import java.util.HashMap;
-	import java.util.Map;
+import java.util.HashMap;
+import java.util.Map;
 
-	public class TicketFactory {
-		private static final Map<TicketTypeRequest.Type, Class<? extends Ticket>> ticketMap = new HashMap<>();
+public class TicketFactory {
+	private static Map<TicketTypeRequest.Type, Class<? extends Ticket>> ticketMap = new HashMap<>();
 
-		static {
-			ticketMap.put(TicketTypeRequest.Type.ADULT, AdultTicket.class);
-			ticketMap.put(TicketTypeRequest.Type.CHILD, ChildTicket.class);
-			ticketMap.put(TicketTypeRequest.Type.INFANT, InfantTicket.class);
-		}
+	static {
+		addTicketType(TicketTypeRequest.Type.ADULT, AdultTicket.class);
+		addTicketType(TicketTypeRequest.Type.CHILD, ChildTicket.class);
+		addTicketType(TicketTypeRequest.Type.INFANT, InfantTicket.class);
+	}
 
-		public static Ticket createTicket(TicketTypeRequest.Type type) {
-			Class<? extends Ticket> ticketClass = ticketMap.get(type);
+	public static void addTicketType(TicketTypeRequest.Type type, Class<? extends Ticket> clazz) {
+		ticketMap.put(type, clazz);
+	}
 
-			try {
-				return ticketClass.getConstructor().newInstance();
+	public static Ticket createTicket(TicketTypeRequest.Type type) {
+		Class<? extends Ticket> ticketClass = ticketMap.get(type); // class to create
 
-			} catch (Exception e) {
-				throw new RuntimeException("Error creating ticket instance for " + type, e);
-			}
+		try {
+			return ticketClass.getConstructor().newInstance();
+
+		} catch (Exception e) {
+			throw new RuntimeException("Error creating ticket instance for " + type, e);
 		}
 
 	}
+
+}
 
 

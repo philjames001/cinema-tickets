@@ -14,9 +14,6 @@ import uk.gov.dwp.uc.pairtest.exception.InvalidNumTicketsException;
 import uk.gov.dwp.uc.pairtest.exception.InvalidPurchaseException;
 import uk.gov.dwp.uc.pairtest.exception.MissingAdultException;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
@@ -25,7 +22,6 @@ import static org.mockito.Mockito.verify;
 public class TicketServiceTest extends TestCase {
 
     private TicketService ticketService;
-
 
     @Mock
     private TicketPaymentService paymentService;
@@ -52,8 +48,10 @@ public class TicketServiceTest extends TestCase {
             fail();
         }
 
-        verify(paymentService, times(1)).makePayment(1L, 20);
-        verify(reservationService, times(1)).reserveSeat(1, 1);
+        // check the mocked services were invoked as expected
+        // 1 adult = £20, 1 seat
+        verify(paymentService, times(1)).makePayment(accountId, 20);
+        verify(reservationService, times(1)).reserveSeat(accountId, 1);
 
         assertTrue(true);
     }
@@ -83,63 +81,117 @@ public class TicketServiceTest extends TestCase {
             fail();
         }
 
-        verify(paymentService, times(1)).makePayment(1L, 90);
-        verify(reservationService, times(1)).reserveSeat(1L, 6);
+        // check the mocked services were invoked as expected
+        verify(paymentService,     times(1)).makePayment(accountId, 90);
+        verify(reservationService, times(1)).reserveSeat(accountId, 6);
 
         assertTrue(true);
     }
+    
 
     @Test
     public void testInvalidAccount() {
         long accountId = 0L;
+        Object exception = null;
 
         TicketTypeRequest request = new TicketTypeRequest(TicketTypeRequest.Type.ADULT, 1);
 
         try {
             ticketService.purchaseTickets(accountId, request);
-        } catch (InvalidPurchaseException e) {
-            assertThat(e, instanceOf(InvalidAccountException.class));
+        } catch (Exception e) {
+        	exception = e;  
         }
+        assertThat(exception, instanceOf(InvalidAccountException.class));
     }
 
     @Test
     public void testChildMissingAdult() {
         long accountId = 1L;
+        Object exception = null;
 
         TicketTypeRequest request = new TicketTypeRequest(TicketTypeRequest.Type.CHILD, 1);
 
         try {
             ticketService.purchaseTickets(accountId, request);
-        } catch (InvalidPurchaseException e) {
-            assertThat(e, instanceOf(MissingAdultException.class));
+        } catch (Exception e) {
+        	exception = e;  
         }
+        assertThat(exception, instanceOf(MissingAdultException.class));
     }
 
     @Test
     public void testInfantMissingAdult() {
         long accountId = 1L;
+        Object exception = null;
 
         TicketTypeRequest request = new TicketTypeRequest(TicketTypeRequest.Type.INFANT, 1);
 
         try {
             ticketService.purchaseTickets(accountId, request);
-        } catch (InvalidPurchaseException e) {
-            assertThat(e, instanceOf(MissingAdultException.class));
+        } catch (Exception e) {
+        	exception = e;
         }
+        assertThat(exception, instanceOf(MissingAdultException.class));
     }
 
     @Test
-    public void testTooManyTickets() {
+    public void testPurchaseMaxNumTickets() {
         long accountId = 1L;
-
-        List<TicketTypeRequest> requests = new ArrayList<TicketTypeRequest>();
-
-        requests.add(new TicketTypeRequest(TicketTypeRequest.Type.ADULT, 21));
+        
+        // max is 25 tickets per request
+        // 25 adults = £500, 25 seats
+        TicketTypeRequest request = new TicketTypeRequest(TicketTypeRequest.Type.ADULT, 25);
  
         try {
-            ticketService.purchaseTickets(accountId, requests.toArray(new TicketTypeRequest[0]));
-        } catch (InvalidPurchaseException e) {
-            assertThat(e, instanceOf(InvalidNumTicketsException.class));
+        	ticketService.purchaseTickets(accountId, request);
+        } catch (Exception e) {
+            fail();
         }
+
+        // check the mocked services were invoked as expected
+        verify(paymentService,     times(1)).makePayment(accountId, 500);
+        verify(reservationService, times(1)).reserveSeat(accountId, 25);
+
+        assertTrue(true);
+    }
+
+    
+    @Test
+    public void testTooManyTicketsForAdult() {
+        long accountId = 1L;
+        Object exception = null;
+
+        // max is 25 tickets per request
+        TicketTypeRequest request = new TicketTypeRequest(TicketTypeRequest.Type.ADULT, 26);
+ 
+        try {
+        	ticketService.purchaseTickets(accountId, request);
+        } catch (InvalidPurchaseException e) {
+        	exception = e;
+        }
+        
+        assertThat(exception, instanceOf(InvalidNumTicketsException.class));
+    }
+    
+    
+    @Test
+    public void testTooManyTicketsInTotal() {
+        long accountId = 1L;
+        Object exception = null;
+
+        // max is 25 tickets per request
+        // 10 adult + 10 child + 6 infant = 26 tickets
+        TicketTypeRequest r1 = new TicketTypeRequest(Type.ADULT, 10);
+        TicketTypeRequest r2 = new TicketTypeRequest(Type.CHILD, 10);
+        TicketTypeRequest r3 = new TicketTypeRequest(Type.INFANT, 6);
+
+        try {
+            ticketService.purchaseTickets(accountId, r1,r2,r3);
+            
+        } catch (InvalidPurchaseException e) {
+        	exception = e;
+        }
+        
+        assertThat(exception, instanceOf(InvalidNumTicketsException.class));
     }
 }

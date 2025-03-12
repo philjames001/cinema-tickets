@@ -1,8 +1,22 @@
 package uk.gov.dwp.uc.pairtest.domain;
 
-
 public abstract class Ticket {
-
-	abstract public int getPrice();
-	abstract public int getSeats();
+	int price;
+	int numSeats;
+	
+	public void setPrice(int price) {
+		this.price = price;
+	}
+	
+	public int getPrice() {
+		return price;
+	}
+	
+	public void setNumSeats(int numSeats) {
+		this.numSeats = numSeats;
+	}
+	
+	public int getNumSeats() {
+		return numSeats;
+	}
 }
